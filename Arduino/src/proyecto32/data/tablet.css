@@ -1,0 +1,110 @@
+html {
+    height: 100%;
+    font-family: Arial; 
+    text-align: center;
+}
+
+body {
+    height: 100%;
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    display: grid;
+    justify-items: center;
+    align-items: center;
+    background-color: #3a3a3a;
+}
+
+
+#row {
+    width: 130px;
+    height: 130px;
+    background-color: white;
+    color: black;
+    border: 2px solid #828282;
+    border-radius: 5px;
+    justify-items: center;
+    align-items: center;
+    text-align: center;
+    font-size: 30;
+    margin: 3px;
+
+}
+
+#X {
+    width: 130px;
+    height: 130px;
+    background-color: red;
+    color: black;
+    border: 2px solid #828282;
+    border-radius: 5px;
+    justify-items: center;
+    align-items: center;
+    text-align: center;
+    font-size: 30;
+    margin: 3px;
+
+}
+
+#del {
+    width: 130px;
+    height: 130px;
+    background-color: yellow;
+    color: black;
+    border: 2px solid #828282;
+    border-radius: 5px;
+    justify-items: center;
+    align-items: center;
+    text-align: center;
+    font-size: 30;
+    margin: 3px;
+
+}
+
+#ok {
+    width: 130px;
+    height: 270px;
+    background-color: green;
+    color: black;
+    border: 2px solid #828282;
+    border-radius: 5px;
+    justify-items: center;
+    align-items: center;
+    text-align: center;
+    font-size: 30;
+    margin: 3px;
+
+}
+
+.pass{
+    width: 530px;
+    height: 100px;
+    background-color: lightgrey;
+    margin:3px;
+    justify-items: center;
+
+
+}
+
+.col {
+    display: flex;
+    margin:3px;
+}
+
+.lastcol{
+    display: flex;
+    margin:3px;
+    margin-top: -140px;
+}
+
+#main-holder {
+    display: grid;
+    min-width: 350px;
+    min-height: 500px;
+    width: 50%;
+    height: 70%;
+    justify-items: center;
+    align-items: center;
+    background-color: white;
+    border-radius: 7px;
+    box-shadow: 0px 0px 5px 2px black;
+}

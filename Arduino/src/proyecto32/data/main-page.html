@@ -1,0 +1,104 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+  <meta content="utf-8" http-equiv="encoding">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="main-page.css">
+
+  <title>CRAB Lock</title>
+</head>
+<body>
+  <div id="adminUsers">
+    <span class="helper"></span>
+    <div>
+        <div id="popupCloseButton" onclick="mostrarUsers()">&times;</div>
+        
+        %MOSTRARUSUARIOS%
+        
+        
+        
+
+    </div>
+    </div>
+
+
+  <main id="main-holder">
+
+
+    <div id="logo"><a href="/"><img src="https://i.ibb.co/kGJk3RK/CRABLock-logo.png" height=100></a></div>
+    
+    <h2><img src="https://i.ibb.co/jGgchqP/CRABlock.png" height=40></h2>
+    
+    %BUTTONPLACEHOLDER%
+    <br>
+    <button class="button button1" onclick="abrir()">Abrir</button>
+    <button class="button button2" onclick="cerrar()">Cerrar</button>
+    <br>
+    <button class="button button4" onclick="agregarUsuario()">Agregar Usuario</button>
+    <br>
+    <button class="button button5" onclick="mostrarUsers()">Administrar Usuarios</button>
+    <br>
+
+    
+    
+
+  </main>
+ 
+</body>
+
+<script type="text/javascript">
+  function toggle() {
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "/update?opcion=2", true);
+  xhr.send();
+  location.reload();
+}
+
+function abrir() {
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "/update?opcion=1", true);
+  xhr.send();
+  location.reload();
+}
+
+function cerrar() {
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "/update?opcion=0", true);
+  xhr.send();
+  location.reload();
+}
+
+function agregarUsuario() {
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "/update?opcion=3", true);
+  xhr.send();
+}
+
+function mostrarUsers() {
+  var elem = document.getElementById('adminUsers');
+   if(elem.style.display === "block"){
+   elem.style.display = "none";
+ }else{
+  elem.style.display = "block";
+ }
+  
+}
+
+function elimUser(x){
+  var xhr = new XMLHttpRequest();
+  if (confirm("eliminar usuario " + x + "?")) {
+    xhr.open("GET", `/update?eliminar=${x}`, true);
+    xhr.send();
+    setTimeout(() => {
+      location.reload();
+    }, 500);
+    alert("usuario " + x + " eliminado");
+} 
+}
+
+
+
+</script>
+</html>
