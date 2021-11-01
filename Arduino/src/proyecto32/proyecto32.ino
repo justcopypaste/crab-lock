@@ -29,13 +29,13 @@ byte LecturaUID[4];
 byte Usuarios[8][4];
 
 //Servidor Web///////////////////////////////////////////////
-/*const char* ssid = "AquiTampoco";
+const char* ssid = "AquiTampoco";
 const char* password = "notengoidea";
+
+/*
+  const char* ssid = "JoakoMi8";
+  const char* password = "qqqqqqqq";
 */
-
-const char* ssid = "JoakoMi8";
-const char* password = "qqqqqqqq";
-
 
 const char* PARAM_INPUT_1 = "opcion";
 const char* PARAM_INPUT_2 = "eliminar";
@@ -73,22 +73,22 @@ String processor(const String& var) {
 
     for (int i = 0; i < cantUsuarios; i++) {
       alertUsers = Users[i];
-      if(alertUsers.length() > 5){
-      alertUsers.toUpperCase();
-      alertUsers.replace("\"", "");
-      alertUsers.replace(",", ", ");
-      alertUsers.replace(":", ": ");
-      alertUsers.replace("{", "");
-      alertUsers.replace("}", "");
+      if (alertUsers.length() > 5) {
+        alertUsers.toUpperCase();
+        alertUsers.replace("\"", "");
+        alertUsers.replace(",", ", ");
+        alertUsers.replace(":", ": ");
+        alertUsers.replace("{", "");
+        alertUsers.replace("}", "");
 
-      alert += "<a>" + alertUsers + " &nbsp; </a>";
-      alert += "<a style=\"color:#FF0000; font-size: 20px;\", onclick=\"elimUser(";
-      alert += i+1;
-      alert += " )\"> x </a>";
-      alert += "<br>";
-      alert += "<br>";
+        alert += "<a>" + alertUsers + " &nbsp; </a>";
+        alert += "<a style=\"color:#FF0000; font-size: 20px;\", onclick=\"elimUser(";
+        alert += i + 1;
+        alert += " )\"> x </a>";
+        alert += "<br>";
+        alert += "<br>";
+      }
     }
-}
 
     return alert;
   }
@@ -100,13 +100,11 @@ String processor(const String& var) {
 
 void setup() {
   /*Users[0] = "{\"id\":1,\"pass\":\"1234\",\"UID\":[211,240,171,002]}";
-  Users[1] = "{\"id\":2,\"pass\":\"4321\",\"UID\":[249,116,037,179]}";
-  Users[2] = "{\"id\":3,\"pass\":\"1590\",\"UID\":[014,200,190,141]}";
-  Users[3] = "{\"id\":4,\"pass\":\"1234\",\"UID\":[211,240,171,002]}";
-  Users[4] = "{\"id\":5,\"pass\":\"4321\",\"UID\":[249,116,037,179]}";
-  Users[5] = "{\"id\":6,\"pass\":\"1590\",\"UID\":[014,200,190,141]}";*/
-  
-  
+    Users[1] = "{\"id\":2,\"pass\":\"4321\",\"UID\":[249,116,037,179]}";
+    Users[2] = "{\"id\":3,\"pass\":\"1590\",\"UID\":[014,200,190,141]}";
+    Users[3] = "{\"id\":4,\"pass\":\"1234\",\"UID\":[211,240,171,002]}";
+    Users[4] = "{\"id\":5,\"pass\":\"4321\",\"UID\":[249,116,037,179]}";
+    Users[5] = "{\"id\":6,\"pass\":\"1590\",\"UID\":[014,200,190,141]}";*/
 
   Serial.begin(9600);
   while (!Serial) continue;
@@ -124,16 +122,14 @@ void setup() {
   for (byte i = 0; i < 6; i++) {
     key.keyByte[i] = 0xFF;
   }
-  
-  if (!SD.begin()) {
+
+  if (!SD.begin(5)) {
     Serial.println("SD card initialization failed!");
     //return;
-  }else{
-    getSdInfo();
+  } else {
+    // getSdInfo();
     Serial.println("Listo");
-    }
-
-  
+  }
 
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
@@ -142,8 +138,9 @@ void setup() {
   }
   //Mostrar IP
   Serial.println(WiFi.localIP());
-  obtenerUsuarios(SD);
+  obtenerUsuarios();
   iniciarServerWeb();
+  showMenu();
 }
 
 void loop() {
@@ -152,8 +149,114 @@ void loop() {
   } else {
     agregarUsuario();
   }
+
+  if (Serial.available()) {
+    String input = Serial.readString();
+    int opc = input.toInt();
+    switch (opc) {
+      case 0:
+        showMenu();
+        break;
+      case 1:
+        crearUser();
+        break;
+      case 2:
+        showUsers();
+        break;
+      case 3:
+        delUser();
+        break;
+      case 4:
+        listAllFiles();
+        break;
+      default:
+        Serial.println("Opcion incorrecta");
+        break;
+
+    }
+  }
+  delay(50);
+}
+void showMenu() {
+  Serial.println("Opciones:");
+  Serial.println("0-Mostrar Menu");
+  Serial.println("1-Agregar usuario");
+  Serial.println("2-Mostrar usuarios");
+  Serial.println("3-Eliminar usuario");
 }
 
+void crearUser() {
+  Serial.println("Agregar usuario:");
+  while (!Serial.available()) {
+  }
+  if (Serial.available()) {
+    String input = Serial.readString();
+    if (input.length() > 15) {
+      saveString(input);
+      Users[cantUsuarios] = input;
+      String idUser = cantUsuarios + "";
+      Serial.println("Usuario " + idUser + " agregado");
+      cantUsuarios++;
+    }
+  }
+
+}
+
+void showUsers() {
+  Serial.println("Usuarios:");
+  for (int i = 0; i < cantUsuarios; i++) {
+    if (Users[i].length() > 15) {
+      Serial.println(i + Users[i]);
+    }
+  }
+}
+
+void delUser() {
+  Serial.println("Eliminar usuario");
+  Serial.println("Introduzca Id del usuario a eliminar:");
+  while (!Serial.available()) {}
+  if (Serial.available()) {
+    String input = Serial.readString();
+    int delId = input.toInt();
+    if (delId > cantUsuarios) {
+      Serial.println("Ese ID no existe");
+      showMenu();
+    } else {
+      eliminarUsuario(delId);
+    }
+
+  }
+}
+
+void eliminarUsuario(int delId) {
+  for (int i = delId; i < cantUsuarios; i++) {
+    Users[i] = Users[i + 1];
+    for (int x = 0; x < 4; x++) {
+      Usuarios[i][x] = Usuarios[i + 1][x];
+    }
+
+  }
+  cantUsuarios--;
+  saveUsers();
+
+  Serial.println("Usuario eliminado");
+}
+
+void listAllFiles() {
+
+  File root = SPIFFS.open("/");
+
+  File file = root.openNextFile();
+
+  while (file) {
+
+    Serial.print("FILE: ");
+    Serial.println(file.name());
+
+    file = root.openNextFile();
+  }
+
+}
 
 void iniciarServerWeb() {
   server.on("/", HTTP_GET, [](AsyncWebServerRequest * request) {
@@ -206,17 +309,15 @@ void iniciarServerWeb() {
         Serial.println("Agregar Usuario");
         agregarUsuario();
       }
-      else if (inputMessage.toInt() == 4) {
-        Serial.println("Eliminar usuario");
-      }
     }
     else if (request->hasParam(PARAM_INPUT_2)) {
       inputMessage = request->getParam(PARAM_INPUT_2)->value();
       inputParam = PARAM_INPUT_2;
-      
-      Serial.println("Eliminar usuario " + inputMessage);
-        
-      }
+      int inputId = inputMessage.toInt() - 1;
+      Serial.println("Eliminar usuario " + inputId);
+      eliminarUsuario(inputId);
+
+    }
     else {
       inputMessage = "No message sent";
       inputParam = "none";
@@ -253,25 +354,6 @@ void dentro () {
   digitalWrite(cerradura, estaAbierto);
   //delay(2000);
 }
-
-void getSdInfo(){
-  uint8_t cardType = SD.cardType();
-  Serial.println();
-  Serial.print("SD Card Type: ");
-  if(cardType == CARD_MMC){
-    Serial.println("MMC");
-  } else if(cardType == CARD_SD){
-    Serial.println("SDSC");
-  } else if(cardType == CARD_SDHC){
-    Serial.println("SDHC");
-  } else {
-    Serial.println("UNKNOWN");
-  }
-  
-  uint64_t cardSize = SD.cardSize() / (1024 * 1024);
-  Serial.printf("SD Card Size: %lluMB\n", cardSize);
-  }
-
 
 void leerTarjeta() {
   if (!reader.PICC_IsNewCardPresent())
@@ -324,45 +406,49 @@ boolean comparaUID(byte lectura[], byte usuario[])
   return (true);
 }
 
-void obtenerUsuarios(fs::FS &fs) {
-  myFile = fs.open("/cards.txt");
-  int count = 0;
 
+void obtenerUsuarios() {
+  myFile = SPIFFS.open("/users.txt");
+  int count = 0;
 
   //Obtener usuarios guardados en la SD
   if (myFile) {
     while (myFile.available()) {
       String list = myFile.readStringUntil('\r');
-      Serial.println(list);
+      //Serial.println(list);
       list.trim();
-      Users[count] = list;
-      count++;
+      if (list.length() > 5) {
+        Users[count] = list;
+        count++;
+      }
+
     }
-
-
     myFile.close();
+
   } else {
     Serial.println("Error abriendo el archivo cards.txt");
   }
+
   if (count > 0) {
-    cantUsuarios = count + 1;
+    cantUsuarios = count;
   }
   else {
     cantUsuarios = 0;
   }
 
-  //Imprimir usuarios obtenidos
-  Serial.println("Usuarios:");
+  //Ajustar cantidad de usuarios obtenidos e imprimir usuarios
+  int usuariosVacios = 0;
+  //Serial.println("Usuarios:");
   for (int i = 0; i < cantUsuarios; i++) {
-    Serial.println(Users[i]);
+    if (Users[i].length() > 5) {
+      //Serial.println(Users[i]);
+      parseJson(Users[i], i);
+    } else {
+      usuariosVacios++;
+    }
   }
-
-  //Deserializar y guardar usuarios obtenidos
-  for (int i = 0; i < cantUsuarios; i++) {
-    parseJson(Users[i], i);
-  }
+  cantUsuarios = cantUsuarios - usuariosVacios;
 }
-
 
 void agregarUsuario() {
 
@@ -414,8 +500,9 @@ void agregarUsuario() {
     for (int i = 0; i < 4; i++) {
       Usuarios[cantUsuarios][i] = LecturaUID[i];
     }
+    
+    guardarUsuario(cantUsuarios, "0000", LecturaUID);
     cantUsuarios++;
-    guardarUsuario(SD ,(cantUsuarios), "0000", LecturaUID);
   }
 
   funcionActiva = false;
@@ -423,9 +510,9 @@ void agregarUsuario() {
 }
 
 
-void guardarUsuario(fs::FS &fs, int jsonId, String jsonPass, byte jsonUID[4]) {
+void guardarUsuario(int jsonId, String jsonPass, byte jsonUID[4]) {
 
-  myFile = fs.open("/cards.txt", FILE_APPEND);
+  myFile = SPIFFS.open("/users.txt", FILE_APPEND);
 
   StaticJsonDocument<200> doc;
 
@@ -443,6 +530,8 @@ void guardarUsuario(fs::FS &fs, int jsonId, String jsonPass, byte jsonUID[4]) {
 
   Serial.println("Usuario a guardar:");
   Serial.println(jsonString);
+  
+  Users[cantUsuarios] = jsonString;
 
   if (myFile) {
     delay(50);
@@ -456,7 +545,6 @@ void guardarUsuario(fs::FS &fs, int jsonId, String jsonPass, byte jsonUID[4]) {
   }
 }
 
-
 void parseJson(String jsonToParse, int userID) {
   StaticJsonDocument<200> doc;
 
@@ -465,9 +553,9 @@ void parseJson(String jsonToParse, int userID) {
 
   //Comprobar errores en la deserializacion
   if (error) {
-    Serial.println("");
-    Serial.print(F("deserializeJson() failed: "));
-    Serial.println(error.f_str());
+    /*Serial.println("");
+      Serial.print(F("deserializeJson() failed: "));
+      Serial.println(error.f_str());*/
     return;
   }
 
@@ -478,17 +566,39 @@ void parseJson(String jsonToParse, int userID) {
     Usuarios[userID][i] = doc["UID"][i];
   }
 
-  /*
-    //Imprimir usuario
-    Serial.println("");
-    Serial.print("ID: ");
-    Serial.println(jsonId);
-    Serial.print("PASS: ");
-    Serial.println(jsonPass);
-    Serial.print("UID: ");
-    for (int i = 0; i < 4; i++) {
-    Serial.print(Usuarios[userID][i],HEX);
-    Serial.print(", ");
+}
+
+void saveUsers() {
+  if (SPIFFS.exists("/users.txt")) {
+    if (SPIFFS.exists("/users_old.txt")) {
+      SPIFFS.remove("/users_old.txt");
     }
-  */
+    SPIFFS.rename("/users.txt", "/users_old.txt");
+  }
+  for (int i = 0; i < cantUsuarios; i++ ) {
+    if (Users[i].length() > 5) {
+      saveString(Users[i]);
+    }
+  }
+
+}
+
+void saveString(String datos) {
+  if (SPIFFS.exists("/users.txt")) {
+    myFile = SPIFFS.open("/users.txt", FILE_APPEND);
+  } else {
+    myFile = SPIFFS.open("/users.txt", FILE_WRITE);
+  }
+  StaticJsonDocument<200> doc;
+
+  if (myFile) {
+    delay(50);
+    myFile.println(datos);
+    //Serial.println("Guardando usuario en users.txt...");
+    delay(50);
+    myFile.close();
+    //Serial.println("Guardado.");
+  } else {
+    Serial.println("Error abriendo users.txt");
+  }
 }

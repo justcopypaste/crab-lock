@@ -88,13 +88,13 @@ function mostrarUsers() {
 
 function elimUser(x){
   var xhr = new XMLHttpRequest();
-  if (confirm("eliminar usuario " + x + "?")) {
+  if (confirm("eliminar usuario " + (x) + "?")) {
     xhr.open("GET", `/update?eliminar=${x}`, true);
     xhr.send();
     setTimeout(() => {
       location.reload();
     }, 500);
-    alert("usuario " + x + " eliminado");
+    alert("usuario " + (x) + " eliminado");
 } 
 }
 
