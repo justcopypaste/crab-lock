@@ -7,12 +7,17 @@
 #include <ArduinoJson.h>
 #include <ESPAsyncWebServer.h>
 #include "SPIFFS.h"
+#include <NTPClient.h>
+#include <WiFiUdp.h>
 
 #define RST_PIN 22
 #define SS_PIN 21
 
 MFRC522 reader(SS_PIN, RST_PIN);
 MFRC522::MIFARE_Key key;
+
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP);
 
 File myFile;
 
@@ -93,6 +98,20 @@ String processor(const String& var) {
     return alert;
   }
 
+  if (var == "MOSTRARLOGS") {
+    String alert = "<br>";
+    String log_line = "";
+
+    for (int i = 0; i < 15; i++) {
+      log_line = get_log_line(i);
+      alert += "<a>" + log_line + " &nbsp; </a>";
+      alert += "<br>";
+
+    }
+
+    return alert;
+  }
+
 
 
   return String();
@@ -140,6 +159,10 @@ void setup() {
   Serial.println(WiFi.localIP());
   obtenerUsuarios();
   iniciarServerWeb();
+
+  timeClient.begin();
+  timeClient.setTimeOffset(-10800);
+
   showMenu();
 }
 
@@ -275,6 +298,8 @@ void iniciarServerWeb() {
     request->send(SPIFFS, "/main-page.css", "text/css");
   });
 
+  server.serveStatic("/users.txt", SPIFFS, "/www/users.txt");
+
   //////////////////////////////////////////////////////
   //Interpretacion HTTP
   // Send a GET request to <ESP_IP>/update?state=<inputMessage>
@@ -309,6 +334,12 @@ void iniciarServerWeb() {
         Serial.println("Agregar Usuario");
         agregarUsuario();
       }
+      else if (inputMessage.toInt() == 4) {
+        Serial.println("Descargar logs");
+        download_logs(request);
+
+
+      }
     }
     else if (request->hasParam(PARAM_INPUT_2)) {
       inputMessage = request->getParam(PARAM_INPUT_2)->value();
@@ -329,16 +360,111 @@ void iniciarServerWeb() {
   server.begin();
 }
 
-void noAutorizado() {
-  Serial.println("no estas autorizado");
+String getDate() {
+  String formattedDate;
+  String dayStamp;
+  String timeStamp;
+  String date_time;
+
+  while (!timeClient.update()) {
+    timeClient.forceUpdate();
+  }
+
+  formattedDate = timeClient.getFormattedDate();
+  // Extract date
+  int splitT = formattedDate.indexOf("T");
+  dayStamp = formattedDate.substring(0, splitT);
+  // Extract time
+  timeStamp = formattedDate.substring(splitT + 1, formattedDate.length() - 1);
+
+  date_time = dayStamp + " " + timeStamp;
+  return date_time;
 }
 
-void usuario () {
+void saveLog(String toSave) {
+  File log_file;
+
+  if (SD.exists("/logs.txt")) {
+    log_file = SD.open("/logs.txt", FILE_APPEND);
+  } else {
+    log_file = SD.open("/logs.txt", FILE_WRITE);
+  }
+
+  String date_time = getDate();
+  String log_line = date_time + " " + toSave;
+
+  Serial.println(log_line);
+
+  if (log_file) {
+    delay(50);
+    log_file.println(log_line);
+    delay(50);
+    log_file.close();
+    Serial.println("log guardado en logs.txt");
+  } else {
+    Serial.println("error abriendo logs.txt");
+  }
+}
+
+String get_log_line(int line) {
+  File log_file = SD.open("/logs.txt");
+  int count = 0;
+
+  if (log_file) {
+    while (log_file.available()) {
+      String log_line = log_file.readStringUntil('\r');
+
+      if (count == line) {
+        return log_line;
+      }
+      count++;
+    }
+    return "";
+  }
+  else {
+    return "Error abriendo logs.txt";
+  }
+
+}
+
+void download_logs(AsyncWebServerRequest * request) {
+
+  File download = SD.open("/logs.txt");
+  if (download) {
+  /* AsyncWebServerResponse *response = request->beginResponse(SD, download, String(), true);
+    response->addHeader("Server", "ESP Async Web Server");
+    request->send(response);*/
+    download.close();
+  } else Serial.println("error abriendo logs.txt");
+
+}
+
+
+void noAutorizado(byte lectura[4]) {
+  Serial.println("no estas autorizado");
+  String tarjeta;
+  for (int i = 0; i < 4; i++) {
+    tarjeta += String(lectura[i], HEX) + ":";
+  }
+  tarjeta.toUpperCase();
+
+  String toSave = tarjeta + " Acceso denegado";
+  saveLog(toSave);
+}
+
+void usuario (byte lectura[4]) {
   Serial.println("Bienvenido Usuario");
   Serial.println("abierto");
   estaAbierto = true;
   digitalWrite(cerradura, estaAbierto);
   //delay(2000);
+  String tarjeta;
+  for (int i = 0; i < 4; i++) {
+    tarjeta += String(lectura[i], HEX) + ":";
+  }
+  tarjeta.toUpperCase();
+  String toSave = tarjeta + " Acceso autorizado";
+  saveLog(toSave);
 }
 
 void admin() {
@@ -376,17 +502,17 @@ void leerTarjeta() {
 
   Serial.print("\t");
 
-  bool userEncontrado = false;
+  bool accesoAutorizado = false;
 
   for (int i = 0; i < cantUsuarios; i++) {
     if (comparaUID(LecturaUID, Usuarios[i])) {
-      userEncontrado = true;
+      accesoAutorizado = true;
     }
   }
-  if (userEncontrado) {
-    usuario();
+  if (accesoAutorizado) {
+    usuario(LecturaUID);
   } else {
-    noAutorizado();
+    noAutorizado(LecturaUID);
   }
 
   // Halt PICC
@@ -421,7 +547,6 @@ void obtenerUsuarios() {
         Users[count] = list;
         count++;
       }
-
     }
     myFile.close();
 
@@ -455,19 +580,15 @@ void agregarUsuario() {
   if (!funcionActiva) {
     Serial.println("Agregar Usuario");
     Serial.println("Acerque la tarjeta a ingresar");
-
   }
   funcionActiva = true;
   delay(50);
 
-
   if (!reader.PICC_IsNewCardPresent())
     return;
 
-
   if (!reader.PICC_ReadCardSerial())
     return;
-
 
   Serial.print("UID:");
   for (byte i = 0; i < reader.uid.size; i++) {
@@ -500,7 +621,7 @@ void agregarUsuario() {
     for (int i = 0; i < 4; i++) {
       Usuarios[cantUsuarios][i] = LecturaUID[i];
     }
-    
+
     guardarUsuario(cantUsuarios, "0000", LecturaUID);
     cantUsuarios++;
   }
@@ -530,7 +651,7 @@ void guardarUsuario(int jsonId, String jsonPass, byte jsonUID[4]) {
 
   Serial.println("Usuario a guardar:");
   Serial.println(jsonString);
-  
+
   Users[cantUsuarios] = jsonString;
 
   if (myFile) {

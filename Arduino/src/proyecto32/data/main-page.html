@@ -13,11 +13,20 @@
   <div id="adminUsers">
     <span class="helper"></span>
     <div>
-        <div id="popupCloseButton" onclick="mostrarUsers()">&times;</div>
-        
+      <div id="popupCloseButton" onclick="mostrarUsers()">&times;</div>  
         %MOSTRARUSUARIOS%
+      </div>
+
+    </div>
+
+    <div id="showLogs">
+    <span class="helper"></span>
+    <div>
+        <div id="popupCloseButton" onclick="mostrarLogs()">&times;</div>
         
+        %MOSTRARLOGS%
         
+        <a style="color:#FF0000; font-size: 20px;", onclick="descargarLogs()">Descargar logs.txt</a>
         
 
     </div>
@@ -39,6 +48,8 @@
     <button class="button button4" onclick="agregarUsuario()">Agregar Usuario</button>
     <br>
     <button class="button button5" onclick="mostrarUsers()">Administrar Usuarios</button>
+    <br>
+    <button class="button button6" onclick="mostrarLogs()">Mostrar Historial</button>
     <br>
 
     
@@ -84,6 +95,22 @@ function mostrarUsers() {
   elem.style.display = "block";
  }
   
+}
+
+function descargarLogs() {
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "/update?opcion=4", true);
+  xhr.send();
+}
+
+function mostrarLogs(){
+var elem = document.getElementById('showLogs');
+   if(elem.style.display === "block"){
+   elem.style.display = "none";
+ }else{
+  elem.style.display = "block";
+ }
+
 }
 
 function elimUser(x){

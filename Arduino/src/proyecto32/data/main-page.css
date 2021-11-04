@@ -93,6 +93,7 @@ body {
 .button3 {background-color: white;color: black;border: 2px solid #0003ba;}
 .button4 {background-color: white;color: black;border: 2px solid #828282;}
 .button5 {background-color: white;color: black;border: 2px solid #828282;}
+.button6 {background-color: white;color: black;border: 2px solid #828282;}
 .buttonSesion{background-color: white;}
 
 
@@ -116,6 +117,36 @@ body {
     vertical-align:middle;
 }
 #adminUsers > div {
+    background-color: #fff;
+    box-shadow: 10px 10px 60px #555;
+    display: inline-block;
+    height: auto;
+    min-height: 100px;
+    vertical-align: middle;
+    width: 300;
+    position: relative;
+    border-radius: 8px;
+    padding: 15px 5%;
+}
+#showLogs{
+    background:rgba(0,0,0,.4);
+    cursor:pointer;
+    display:none;
+    height:100%;
+    position:fixed;
+    text-align:center;
+    align-items: center;
+    justify-items: center;
+    top:0;
+    width:100%;
+    z-index:10000;
+}
+#showLogs .helper{
+    display:inline-block;
+    height:100%;
+    vertical-align:middle;
+}
+#showLogs > div {
     background-color: #fff;
     box-shadow: 10px 10px 60px #555;
     display: inline-block;
