@@ -34,7 +34,7 @@ byte LecturaUID[4];
 byte Usuarios[8][4];
 
 //Servidor Web///////////////////////////////////////////////
-const char* ssid = "AquiTampoco";
+const char* ssid = "Crablock";
 const char* password = "notengoidea";
 
 /*
@@ -298,7 +298,9 @@ void iniciarServerWeb() {
     request->send(SPIFFS, "/main-page.css", "text/css");
   });
 
-  server.serveStatic("/users.txt", SPIFFS, "/www/users.txt");
+  server.on("/logs.txt", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SD, "/logs.txt", "text/css");
+  });
 
   //////////////////////////////////////////////////////
   //Interpretacion HTTP
@@ -336,7 +338,13 @@ void iniciarServerWeb() {
       }
       else if (inputMessage.toInt() == 4) {
         Serial.println("Descargar logs");
-        download_logs(request);
+        //download_logs(request);
+
+        AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/users.txt", String(), true);
+        response->addHeader("Content-Disposition","attachment; filename=\"users.txt\"");
+        
+        request->send(response); 
+        //request->send(200, "text/plain", "OK");
 
 
       }
@@ -431,9 +439,9 @@ void download_logs(AsyncWebServerRequest * request) {
 
   File download = SD.open("/logs.txt");
   if (download) {
-  /* AsyncWebServerResponse *response = request->beginResponse(SD, download, String(), true);
-    response->addHeader("Server", "ESP Async Web Server");
-    request->send(response);*/
+    /* AsyncWebServerResponse *response = request->beginResponse(SD, download, String(), true);
+      response->addHeader("Server", "ESP Async Web Server");
+      request->send(response);*/
     download.close();
   } else Serial.println("error abriendo logs.txt");
 
