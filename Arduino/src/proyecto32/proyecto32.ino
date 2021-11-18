@@ -34,13 +34,11 @@ byte LecturaUID[4];
 byte Usuarios[8][4];
 
 //Servidor Web///////////////////////////////////////////////
-const char* ssid = "Crablock";
-const char* password = "notengoidea";
+/*const char* ssid = "Crablock";
+  const char* password = "notengoidea";*/
 
-/*
-  const char* ssid = "JoakoMi8";
-  const char* password = "qqqqqqqq";
-*/
+const char* ssid = "Ceibal-2.4GHz";
+const char* password = "";
 
 const char* PARAM_INPUT_1 = "opcion";
 const char* PARAM_INPUT_2 = "eliminar";
@@ -298,7 +296,7 @@ void iniciarServerWeb() {
     request->send(SPIFFS, "/main-page.css", "text/css");
   });
 
-  server.on("/logs.txt", HTTP_GET, [](AsyncWebServerRequest *request){
+  server.on("/logs.txt", HTTP_GET, [](AsyncWebServerRequest * request) {
     request->send(SD, "/logs.txt", "text/css");
   });
 
@@ -341,9 +339,9 @@ void iniciarServerWeb() {
         //download_logs(request);
 
         AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/users.txt", String(), true);
-        response->addHeader("Content-Disposition","attachment; filename=\"users.txt\"");
-        
-        request->send(response); 
+        response->addHeader("Content-Disposition", "attachment; filename=\"users.txt\"");
+
+        request->send(response);
         //request->send(200, "text/plain", "OK");
 
 
