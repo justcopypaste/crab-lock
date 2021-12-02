@@ -34,18 +34,20 @@ byte LecturaUID[4];
 byte Usuarios[8][4];
 
 //Servidor Web///////////////////////////////////////////////
-/*const char* ssid = "Crablock";
-  const char* password = "notengoidea";*/
-
-const char* ssid = "Ceibal-2.4GHz";
-const char* password = "";
+const char* ssid = "Crablock";
+const char* password = "notengoidea";
+/*
+  const char* ssid = "Ceibal-2.4GHz";
+  const char* password = "";*/
 
 const char* PARAM_INPUT_1 = "opcion";
 const char* PARAM_INPUT_2 = "eliminar";
 
 AsyncWebServer server(80);
 
-const int cerradura = 15;
+const int llave = 2;
+const int cerradura = 4;
+const int buzzer = 13;
 
 String processor(const String& var) {
   //Serial.println(var);
@@ -132,6 +134,7 @@ void setup() {
   //Cerradura inicia cerrada
   pinMode(cerradura, OUTPUT);
   digitalWrite(cerradura, LOW);
+  pinMode(llave, INPUT);
 
   SPI.begin();
   reader.PCD_Init();
@@ -445,9 +448,19 @@ void download_logs(AsyncWebServerRequest * request) {
 
 }
 
+void beeps(int cant, int len) {
+  for (int i = 0; i < cant; i++) {
+    pinMode(buzzer, OUTPUT);
+    digitalWrite(buzzer, LOW);
+    delay(len);
+    pinMode(buzzer, INPUT);
+    delay(len);
+  }
+}
 
 void noAutorizado(byte lectura[4]) {
   Serial.println("no estas autorizado");
+  beeps(3, 50);
   String tarjeta;
   for (int i = 0; i < 4; i++) {
     tarjeta += String(lectura[i], HEX) + ":";
@@ -458,11 +471,20 @@ void noAutorizado(byte lectura[4]) {
   saveLog(toSave);
 }
 
+
 void usuario (byte lectura[4]) {
   Serial.println("Bienvenido Usuario");
   Serial.println("abierto");
-  estaAbierto = true;
-  digitalWrite(cerradura, estaAbierto);
+  
+  pinMode(buzzer, OUTPUT);
+  digitalWrite(buzzer, LOW);
+  digitalWrite(cerradura, HIGH);
+  delay(1000);
+  pinMode(buzzer, INPUT);
+  delay(3000);
+  digitalWrite(cerradura, LOW);
+  beeps(1, 70);
+  
   //delay(2000);
   String tarjeta;
   for (int i = 0; i < 4; i++) {
@@ -471,13 +493,6 @@ void usuario (byte lectura[4]) {
   tarjeta.toUpperCase();
   String toSave = tarjeta + " Acceso autorizado";
   saveLog(toSave);
-}
-
-void admin() {
-  Serial.println("Bienvenido administrador ");
-  Serial.println("abierto");
-  estaAbierto = true;
-  digitalWrite(cerradura, estaAbierto);
 }
 
 void dentro () {
@@ -582,7 +597,7 @@ void obtenerUsuarios() {
 }
 
 void agregarUsuario() {
-
+  beeps(1, 70);
   if (!funcionActiva) {
     Serial.println("Agregar Usuario");
     Serial.println("Acerque la tarjeta a ingresar");
@@ -623,6 +638,7 @@ void agregarUsuario() {
   }
   if (userEncontrado) {
     Serial.println("La tarjeta ya esta en el sistema");
+    beeps(3, 50);
   } else {
     for (int i = 0; i < 4; i++) {
       Usuarios[cantUsuarios][i] = LecturaUID[i];
@@ -630,6 +646,7 @@ void agregarUsuario() {
 
     guardarUsuario(cantUsuarios, "0000", LecturaUID);
     cantUsuarios++;
+    beeps(2 ,50);
   }
 
   funcionActiva = false;
